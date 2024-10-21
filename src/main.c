@@ -4,32 +4,32 @@
 #include "jvm.h"
 #include "jvm_utils.h"
 
+void fs_path_join(char* destination, const char* abs, const char* relative) {
+#ifdef WIN32
+  char separator = '\\';
+#else
+  char separator = '/';
+#endif
+
+}
+
 int main(
   int argc,
   char **argv
 ) {
-  printf("opa\n");
-
   struct jvm_instance instance = jvm_create_instance();
 
-  size_t n_bytecodes;
-  bytecode* bytecodes;
+  if (argc != 2) {
+    printf(
+      "You need to provide a single argument. The file that contains the program bytecodes.\n\
+      Example:\n./bin minecraft.jar\n\n\t\
+      If you wish to use a file in another directory, use the full path"
+    );
+  }
 
-  // strlen("main.c") == 6
-  char* file = (char*)malloc(strlen(argv[0]) - 6);
-
-  int res = jvm_utils_read_bytecodes_from_file(
-    "./test.hex",
-    n_bytecodes,
-    bytecodes
-  );
-
-  if (res) return res;
-
-  res = jvm_load_program(
+  int res = jvm_load_program_file(
     &instance,
-    n_bytecodes,
-    bytecodes
+    argv[1]
   );
 
   if (res) return res;
