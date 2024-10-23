@@ -3,8 +3,9 @@
 
 #include <setjmp.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-extern jmp_buf exception_handler;
+jmp_buf exception_handler;
 
 struct jvm_instance jvm_create_instance() {
   return (struct jvm_instance){
@@ -44,12 +45,16 @@ int jvm_run_program(struct jvm_instance* instance) {
     longjmp(exception_handler, JVM_UNKNOWN_ERROR);
   }
 
-  bytecode* code;
+  bytecode* code = malloc(sizeof(bytecode));
+
   while (!instance->finished) {
     // TODO: load chunks at a time for faster runtime
+    // TODO: separate reading .class files from executing operations
     int res = fread(code, sizeof(bytecode), 1, instance->bytecode_stream);
+    printf("%d\n", *code);
 
-    if (res) {
+    if (res == 0) {
+      return 0;
       longjmp(exception_handler, JVM_UNKNOWN_ERROR);
     }
 

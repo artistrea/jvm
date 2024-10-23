@@ -2,16 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "jvm.h"
-#include "jvm_utils.h"
-
-void fs_path_join(char* destination, const char* abs, const char* relative) {
-#ifdef WIN32
-  char separator = '\\';
-#else
-  char separator = '/';
-#endif
-
-}
 
 int main(
   int argc,
@@ -25,6 +15,7 @@ int main(
       Example:\n./bin minecraft.jar\n\n\t\
       If you wish to use a file in another directory, use the full path"
     );
+    return 1;
   }
 
   int res = jvm_load_program_file(
@@ -32,11 +23,17 @@ int main(
     argv[1]
   );
 
-  if (res) return res;
+  if (res) {
+    printf("Ruim1\n");
+    return res;
+  }
 
   res = jvm_run_program(&instance);
 
-  if (res) return res;
+  if (res) {
+    printf("Ruim1\n");
+    return res;
+  }
 
   return 0;
 }

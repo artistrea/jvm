@@ -2,8 +2,8 @@ CC:=gcc
 INCDIRS:=include
 OPT:=-O0
 DEBUG:=-g
-LIBS:=-lncurses
-CFLAGS:=-Wall $(DEBUG) $(OPT) $(foreach D,$(INCDIRS),-I$(D))
+LIBS:=
+CFLAGS:=-Wall $(OPT) $(foreach D,$(INCDIRS),-I$(D))
 
 
 ODIR=obj
@@ -16,6 +16,9 @@ OBJECTS=$(patsubst %.c, $(ODIR)/%.o, $(notdir $(CFILES)))
 INCLUDES=$(foreach D,$(INCDIRS), $(shell find $(D) -type f -name "*"))
 
 BINARY=bin
+
+debug: CFLAGS += $(DEBUG)
+debug: all
 
 all: | $(ODIR) $(BINARY) 
 
