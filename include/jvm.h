@@ -17,14 +17,14 @@
 
 #include <inttypes.h>
 #include <setjmp.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h> // size_t
 
-typedef FILE bytecodestream;
 typedef uint8_t bytecode;
 
 struct jvm_instance {
-  bytecodestream* bytecode_stream;
+  bytecode* bytecodes;
   int finished;
   size_t pc;
 };
