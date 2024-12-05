@@ -15,32 +15,5 @@
 // no need for concurrency impl
 // no need for garbage collector impl
 
-#include <inttypes.h>
-#include <setjmp.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h> // size_t
-
-typedef uint8_t bytecode;
-
-struct jvm_instance {
-  bytecode* bytecodes;
-  int finished;
-  size_t pc;
-};
-
-struct jvm_instance jvm_create_instance();
-
-extern jmp_buf exception_handler;
-
-int jvm_load_program_file(
-  struct jvm_instance* instance,
-  char* filename
-);
-
-int jvm_run_program(struct jvm_instance* instance);
-
-void jvm_interpret_bytecode(struct jvm_instance* instance, bytecode const* code);
-
 #endif // JVM_H
 
