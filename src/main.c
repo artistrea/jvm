@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
+#include <string.h>
 
 typedef uint8_t u1;
 typedef uint16_t u2;
@@ -18,7 +18,16 @@ typedef uint16_t java_char; // default is the null code pointer '\u0000' (?)
 typedef float java_float; // default is +0.0f
 typedef double java_double; // default is +0.0
 
-typedef bool java_bool;
+union jvm_variable {
+  java_byte j_byte;
+  java_short j_short;
+  java_int j_int;
+  java_char j_char;
+  java_float j_float;
+  // by joining two variables:
+  // java_double j_double;
+  // java_long j_long;
+};
 
 enum {
   TAG__CONSTANT_Class = 7,
@@ -143,6 +152,82 @@ void uRead(FILE *f, void* addr, size_t n) {
   fread(f, sizeof(uint8_t), n, addr);
 }
 
+#define MAX_FRAME_STACK_SIZE 4096
+
+struct frame {
+  union jvm_variable* local_variables;
+  // TODO: continue at jvms8.pdf, section 2.6.2
+};
+
+struct jvm_stack {
+  uint32_t i;
+  uint32_t max_size;
+  // TODO: change this do dynamic alloc
+  struct frame frames[MAX_FRAME_STACK_SIZE];
+};
+
+// @returns 1 if "stack overflow" error
+// if dynamic alloc is used, should throw "out of memory" error if no mem
+int jvm_stack_frame_push(struct jvm_stack* stack, const struct frame *frame) {
+  stack->frames[stack->i++] = *frame;
+
+  return stack->max_size > stack->i;
+}
+
+void jvm_stack_frame_pop(struct jvm_stack* stack) {
+  stack->i--;
+}
+
+struct jvm_thread_info {
+  uint32_t pc;
+  struct jvm_stack *frame_stack;
+};
+
+// heap is shared between threads
+// TODO: store reference count
+// garbage collector appends free spaces (reference count == 0)
+// to a DSU (disjoint set union). Heap alloc checks for free space in 
+struct jvm_heap {
+  void **mem;
+  uint32_t size;
+};
+
+// returns pointer to allocated space
+// if NULL, out of memory error
+void* jvm_heap_alloc(uint32_t bytes, struct jvm_heap* heap) {
+  heap->size++;
+  void **new_mem = realloc(heap->mem, heap->size);
+  if (new_mem == NULL) return NULL;
+
+  new_mem[heap->size - 1] = malloc(bytes);
+  if (new_mem[heap->size - 1] == NULL) return NULL;
+
+  heap->mem = new_mem;
+
+  return new_mem[heap->size - 1];
+}
+
+struct jvm_method_area {
+  struct ClassFile** class_files;
+  uint32_t size;
+};
+
+struct ClassFile* add_class_to_method_area(struct jvm_method_area* area, struct ClassFile* cf) {
+  area->size++;
+
+  struct ClassFile** new_mem = realloc(area->class_files, area->size);
+  if (new_mem == NULL) return NULL;
+
+  new_mem[area->size - 1] = cf;
+
+  area->class_files = new_mem;
+
+  return new_mem[area->size - 1];
+}
+
+void start_jvm_thread(struct ClassFile *cf) {
+  
+}
 
 int main(
   int argc,
@@ -274,6 +359,17 @@ int main(
   uRead(filestream, &class_file->attributes, sizeof(struct attribute_info) * class_file->attributes_count);
 
   fclose(filestream);
+
+  struct jvm_global_info {
+    struct jvm_method_area method_area;
+  } global_info = {0};
+
+  if (add_class_to_method_area(&global_info.method_area, class_file) == NULL) {
+    perror("Out Of Memory");
+    return 1;
+  }
+
+  start_jvm_thread(class_file);
 
 
   // TODO: run program
