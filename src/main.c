@@ -1,10 +1,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef uint8_t u1;
 typedef uint16_t u2;
 typedef uint32_t u4;
+
+// default value to most of these is 0
+typedef int8_t java_byte;
+typedef int16_t java_short;
+typedef int32_t java_int;
+typedef int64_t java_long;
+
+typedef uint16_t java_char; // default is the null code pointer '\u0000' (?)
+
+typedef float java_float; // default is +0.0f
+typedef double java_double; // default is +0.0
+
+typedef bool java_bool;
 
 enum {
   TAG__CONSTANT_Class = 7,
